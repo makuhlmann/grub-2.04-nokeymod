@@ -693,7 +693,7 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot)
 	  grub_env_unset ("timeout");
           *auto_boot = 1;
 	  menu_fini ();
-	  return default_entry;
+	  return current_entry;
 	}
 
       c = grub_getkey_noblock ();
@@ -701,13 +701,6 @@ run_menu (grub_menu_t menu, int nested, int *auto_boot)
       /* Negative values are returned on error. */
       if ((c != GRUB_TERM_NO_KEY) && (c > 0))
 	{
-	  if (timeout >= 0)
-	    {
-	      grub_env_unset ("timeout");
-	      grub_env_unset ("fallback");
-	      clear_timeout ();
-	    }
-
 	  switch (c)
 	    {
 	    case GRUB_TERM_KEY_HOME:
