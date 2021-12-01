@@ -1,9 +1,49 @@
-# grub-2.04
+# grub-2.04-nokeymod
 Credit/license/source:  Originally obtained from grub-2.04.tar.gz at https://git.savannah.gnu.org/cgit/grub.git 
+Forked from: https://github.com/coherixmatts/grub-2.04
 
-All licenses and credits are theirs. I merely host this to add a small change necessary for Linux efistub booting on Surface RT/2 (maybe other EFI ARM32 devices).
+This fork changes the timeout behaviour of GRUB to allow selecting an OS on a Surface RT device using the volume buttons only. The timeout will continue until 0 and then boot the selected OS.
 
-Build instructions:
+## Requirements
+- Download the grub.efi file from the release section or compile it yourself.
+- On the EFI partition (or USB drive formatted as FAT32) create the folders EFI\boot
+- Place the grub.efi into the EFI\boot folder and rename it to bootarm.efi
+- Download and place the file unicode.pf2 in the root of the partition.
+- Create a grub.cfg config file and place it at the root of the partition. An example can be found below.
+- (Optional:) Place all kernel and device tree files you need to boot linux in the root of the partition
+
+## grub.cfg
+Below you can find an example grub.cfg that allows dual booting of Windows and Linux.
+It's important to specify a timeout value above 0 if you want this modification to work.
+Change the values appropriately. For example if you plan to install GRUB on the device itself, change the root to hd0,x. Also change the root partition of the linux file system accordingly if necessary.
+
+If you install GRUB on the device and plan to dual boot with Windows, you also need to rename the /EFI/Microsoft/Boot/bootmgfw.efi file to something else and then change the name accordingly in the config. Otherwise GRUB will be skipped.
+
+```
+insmod font
+
+if loadfont ${prefix}/unicode.pf2
+then
+    insmod gfxterm
+    set gfxmode=auto
+    set gfxpayload=keep
+    terminal_output gfxterm
+	set timeout=5
+	menuentry "My Linux Distribution" {
+        set root=(hd1,2)
+        linux /zImage root=/dev/mmcblk0p6 cpuidle.off=1 console=ttyS0
+        devicetree /tegra30-microsoft-surface-rt-efi.dtb
+    }
+	menuentry "Windows Bootloader" {
+        set root=(hd1,2)
+        chainloader (${root})/EFI/Microsoft/Boot/bootmgfw.efi
+    }
+else
+    reboot
+fi
+```
+
+## Build instructions:
 
 0. git clone https://www.github.com/coherixmatts/grub-2.04
 1. cd into <grub-2.04> directory
